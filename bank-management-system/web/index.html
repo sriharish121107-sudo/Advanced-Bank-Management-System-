@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Management System Dashboard</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN for Interactive Data Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">🏛️</div>
+                <h2>ApexBank</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="summary">
+                    <span class="nav-icon">📊</span> Dashboard Summary
+                </a>
+                <a href="#" class="nav-item" data-section="accounts">
+                    <span class="nav-icon">👥</span> Manage Accounts
+                </a>
+                <a href="#" class="nav-item" data-section="create-account">
+                    <span class="nav-icon">➕</span> Open Account
+                </a>
+                <a href="#" class="nav-item" data-section="transactions">
+                    <span class="nav-icon">💸</span> Transfer & Ops
+                </a>
+                <a href="#" class="nav-item" data-section="history">
+                    <span class="nav-icon">📜</span> Transactions Log
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Status: <span class="status-indicator online"></span> API Connected</p>
+                <small>Localhost:8080</small>
+            </div>
+        </aside>
+
+        <!-- Main Body -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <div>
+                    <h1 id="page-title">Dashboard Summary</h1>
+                    <p class="subtitle" id="page-subtitle">Real-time banking administration dashboard</p>
+                </div>
+                <div class="quick-stats">
+                    <div class="quick-stat-item">
+                        <span class="stat-lbl">Active Threads:</span>
+                        <span class="stat-val" id="active-threads-val">4 pool + 1 daemon</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Alerts Notification Box -->
+            <div id="notification-box" class="alert-box hidden"></div>
+
+            <!-- SECTION 1: DASHBOARD SUMMARY -->
+            <section id="section-summary" class="dashboard-section active">
+                <!-- Metrics Row -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon blue-icon">👥</div>
+                        <div class="metric-data">
+                            <h3>Total Accounts</h3>
+                            <p id="metric-total-accounts">0</p>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon green-icon">₹</div>
+                        <div class="metric-data">
+                            <h3>Total Deposits</h3>
+                            <p id="metric-total-deposits">₹0.00</p>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon gold-icon">📈</div>
+                        <div class="metric-data">
+                            <h3>Average Balance</h3>
+                            <p id="metric-avg-balance">₹0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-row">
+                    <div class="detail-card chart-card">
+                        <h2>Account Type Mix</h2>
+                        <div class="chart-container">
+                            <canvas id="type-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="detail-card chart-card">
+                        <h2>Top Wealth Distribution (Top 5 Balances)</h2>
+                        <div class="chart-container">
+                            <canvas id="balance-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics & Projections Row -->
+                <div class="analytics-row">
+                    <!-- Interest Projections Card -->
+                    <div class="detail-card analytics-card">
+                        <h2>Annual Yield Projections</h2>
+                        <p class="card-desc">Simulating simulated yields and fee deductions based on account terms.</p>
+                        <div class="proj-list">
+                            <div class="proj-item">
+                                <span class="proj-lbl">Savings Interest (4.0% p.a.):</span>
+                                <span class="proj-val text-success" id="proj-savings-yield">₹0.00</span>
+                            </div>
+                            <div class="proj-item">
+                                <span class="proj-lbl">Current Account Fee Revenue (₹100/mo):</span>
+                                <span class="proj-val text-danger" id="proj-current-fees">₹0.00</span>
+                            </div>
+                            <div class="proj-item border-top">
+                                <span class="proj-lbl">Highest Account Balance:</span>
+                                <span class="proj-val text-gold" id="proj-highest-bal">N/A</span>
+                            </div>
+                            <div class="proj-item">
+                                <span class="proj-lbl">Most Active Customer:</span>
+                                <span class="proj-val text-blue" id="proj-most-active">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Transfer Panel -->
+                    <div class="detail-card analytics-card">
+                        <h2>Quick Fund Transfer</h2>
+                        <p class="card-desc">Execute instant transfers directly from the dashboard hub.</p>
+                        <form id="quick-transfer-form" onsubmit="handleQuickTransferSubmit(event)">
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="quick-sender">From Account</label>
+                                    <select id="quick-sender" required>
+                                        <option value="">-- Select --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="quick-receiver">To Account</label>
+                                    <select id="quick-receiver" required>
+                                        <option value="">-- Select --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="quick-amount">Amount (₹)</label>
+                                    <input type="number" id="quick-amount" min="0.01" step="0.01" placeholder="₹ Amount" required>
+                                </div>
+                                <div class="form-actions" style="margin-top: 24px;">
+                                    <button type="submit" class="btn btn-success" style="width: 100%;">Transfer Now</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Table -->
+                <div class="dashboard-details">
+                    <div class="detail-card">
+                        <div class="card-header">
+                            <h2>Recent Activity Overview</h2>
+                            <button class="btn btn-secondary btn-sm" onclick="refreshDashboardData()">🔄 Refresh</button>
+                        </div>
+                        <div class="table-container">
+                            <table id="recent-accounts-table">
+                                <thead>
+                                    <tr>
+                                        <th>Account No</th>
+                                        <th>Holder Name</th>
+                                        <th>Account Type</th>
+                                        <th>Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-accounts-tbody">
+                                    <tr>
+                                        <td colspan="4" class="text-center">No accounts found. Create one to get started!</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: MANAGE ACCOUNTS (CRUD) -->
+            <section id="section-accounts" class="dashboard-section">
+                <div class="action-bar">
+                    <div class="search-box">
+                        <input type="number" id="search-input" placeholder="Search by Account Number...">
+                        <button class="btn btn-primary" onclick="executeSearch()">Search</button>
+                        <button class="btn btn-secondary" onclick="resetSearch()">Reset</button>
+                    </div>
+                    <div id="search-benchmark" class="benchmark-label"></div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="table-container">
+                        <table id="all-accounts-table">
+                            <thead>
+                                <tr>
+                                    <th>Account No</th>
+                                    <th>Holder Name</th>
+                                    <th>Account Type</th>
+                                    <th>Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-accounts-tbody">
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading accounts...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: CREATE ACCOUNT -->
+            <section id="section-create-account" class="dashboard-section">
+                <div class="form-container">
+                    <div class="detail-card">
+                        <h2>Open a New Account</h2>
+                        <p class="card-desc">Automatically generates a unique account number starting from 1001.</p>
+                        <form id="create-account-form" onsubmit="handleCreateAccountSubmit(event)">
+                            <div class="form-group">
+                                <label for="holder-name-input">Customer Full Name</label>
+                                <input type="text" id="holder-name-input" placeholder="Enter name (e.g. Harish)" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="account-type-input">Account Type</label>
+                                <select id="account-type-input" required>
+                                    <option value="Savings">Savings Account</option>
+                                    <option value="Current">Current Account</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="opening-balance-input">Opening Deposit Balance (₹)</label>
+                                <input type="number" id="opening-balance-input" min="0" step="0.01" value="0.00" placeholder="Minimum ₹0.00" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Create Account</button>
+                                <button type="reset" class="btn btn-secondary">Clear Fields</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: TRANSACTIONS (DEPOSIT, WITHDRAW, TRANSFER) -->
+            <section id="section-transactions" class="dashboard-section">
+                <div class="grid-2-cols">
+                    <!-- Deposit / Withdraw Card -->
+                    <div class="detail-card">
+                        <h2>Account Operations</h2>
+                        <p class="card-desc">Direct deposits and withdrawals to/from a specific account.</p>
+                        <div class="tab-buttons">
+                            <button class="tab-btn active" id="btn-tab-deposit" onclick="switchTxSubTab('deposit')">Deposit</button>
+                            <button class="tab-btn" id="btn-tab-withdraw" onclick="switchTxSubTab('withdraw')">Withdraw</button>
+                        </div>
+                        
+                        <form id="ops-form" onsubmit="handleOpsSubmit(event)">
+                            <input type="hidden" id="ops-type" value="deposit">
+                            <div class="form-group">
+                                <label for="ops-acc-num">Account Number</label>
+                                <input type="number" id="ops-acc-num" placeholder="Enter Account Number (e.g. 1001)" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ops-amount">Amount (₹)</label>
+                                <input type="number" id="ops-amount" min="0.01" step="0.01" placeholder="Enter positive amount" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="ops-submit-btn">Execute Deposit</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Transfer Card -->
+                    <div class="detail-card">
+                        <h2>Fund Transfer</h2>
+                        <p class="card-desc">Safely transfer balances between two separate accounts.</p>
+                        <form id="transfer-form" onsubmit="handleTransferSubmit(event)">
+                            <div class="form-group">
+                                <label for="transfer-sender">Sender Account Number</label>
+                                <input type="number" id="transfer-sender" placeholder="Debit Account Number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="transfer-receiver">Receiver Account Number</label>
+                                <input type="number" id="transfer-receiver" placeholder="Credit Account Number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="transfer-amount">Transfer Amount (₹)</label>
+                                <input type="number" id="transfer-amount" min="0.01" step="0.01" placeholder="Enter positive amount" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-success">Execute Transfer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: TRANSACTION HISTORY -->
+            <section id="section-history" class="dashboard-section">
+                <div class="detail-card">
+                    <div class="action-bar">
+                        <div class="search-box">
+                            <label for="history-acc-select" style="margin-right: 10px; font-weight: 500;">Select Account:</label>
+                            <select id="history-acc-select" onchange="loadTransactionHistory()">
+                                <option value="">-- Choose Account --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Balance After</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <tr>
+                                    <td colspan="5" class="text-center">Select an account number above to display transaction history.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Live Background Log Console panel -->
+            <div class="detail-card terminal-card">
+                <div class="terminal-header">
+                    <div class="term-dot red-dot"></div>
+                    <div class="term-dot yellow-dot"></div>
+                    <div class="term-dot green-dot"></div>
+                    <span class="term-title">AccountSnapshotDaemon - Live Log File Terminal</span>
+                </div>
+                <div class="terminal-body">
+                    <pre id="log-console-screen">Initializing background daemon reader...</pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- UPDATE ACCOUNT MODAL -->
+    <div id="update-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Update Account Details</h2>
+                <button class="close-btn" onclick="closeUpdateModal()">×</button>
+            </div>
+            <form id="update-form" onsubmit="handleUpdateSubmit(event)">
+                <input type="hidden" id="update-acc-number">
+                <div class="form-group">
+                    <label>Account Number</label>
+                    <input type="text" id="update-acc-number-display" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="update-holder-name">Holder Name</label>
+                    <input type="text" id="update-holder-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="update-account-type">Account Type</label>
+                    <select id="update-account-type" required>
+                        <option value="Savings">Savings</option>
+                        <option value="Current">Current</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="delete-modal" class="modal-overlay hidden">
+        <div class="modal-card delete-card">
+            <div class="modal-header">
+                <h2>Confirm Account Deletion</h2>
+                <button class="close-btn" onclick="closeDeleteModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this customer account? This action cannot be undone.</p>
+                <div class="delete-summary">
+                    <p><strong>Account Number:</strong> <span id="delete-acc-num"></span></p>
+                    <p><strong>Holder Name:</strong> <span id="delete-acc-holder"></span></p>
+                    <p><strong>Current Balance:</strong> <span id="delete-acc-balance"></span></p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-danger" id="delete-confirm-btn">Yes, Delete Account</button>
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRANSACTION RECEIPT MODAL -->
+    <div id="receipt-modal" class="modal-overlay hidden">
+        <div class="modal-card receipt-card">
+            <div class="receipt-checkmark">
+                <span class="check-icon">✓</span>
+            </div>
+            <h2 class="text-center" style="margin-bottom: 4px;">Transaction Successful</h2>
+            <p class="text-center text-muted" style="font-size: 13px; margin-bottom: 24px;">Thank you for banking with ApexBank</p>
+            
+            <div class="receipt-details">
+                <div class="receipt-row">
+                    <span>Reference ID:</span>
+                    <strong id="receipt-ref-id">TX-000000</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Timestamp:</span>
+                    <span id="receipt-time">2026-08-16 14:00:00</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Operation Type:</span>
+                    <span class="badge" id="receipt-op-type">TRANSFER</span>
+                </div>
+                <div class="receipt-row border-top" style="padding-top: 12px; margin-top: 12px;">
+                    <span>Amount Transacted:</span>
+                    <strong class="text-success" id="receipt-amount" style="font-size: 18px;">₹0.00</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Active Balance:</span>
+                    <strong id="receipt-balance" style="font-size: 15px;">₹0.00</strong>
+                </div>
+            </div>
+            
+            <div class="modal-actions" style="justify-content: center; gap: 12px; margin-top: 28px;">
+                <button class="btn btn-primary" onclick="closeReceiptModal()" style="padding: 10px 24px;">Done</button>
+                <button class="btn btn-secondary" onclick="window.print()" style="padding: 10px 20px;">🖨️ Print</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
